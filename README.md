@@ -1,4 +1,4 @@
-# FastAPI Clean Architecture application template
+# Sanic Clean Architecture application template
 
 ## How to use
 ### Prerequisites:
@@ -11,11 +11,11 @@ pip install cookiecutter
 ### Initialise the project
 #### 1. Start generating the application structure
 ```bash
-cookiecutter git@github.com:alexted/fastapi-clean-architecture-app-template.git
+cookiecutter git@github.com:alexted/sanic-clean-architecture-app-template.git
 ```
 
 #### 2. Follow the wizard instructions in the console
 
 ## License
 
-[MIT](LICENSE)
+[The Apache License 2.0](LICENSE)

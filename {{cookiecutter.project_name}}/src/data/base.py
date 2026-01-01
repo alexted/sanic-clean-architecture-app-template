@@ -1,6 +1,6 @@
 import abc
 
-from pydantic import BaseModel
+
 
 
 class AbstractRepository(abc.ABC):

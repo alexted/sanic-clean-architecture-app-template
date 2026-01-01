@@ -1,6 +1,6 @@
 import logging
 
-from pydantic import BaseModel
+
 
 from src.domain.use_cases.base import BaseUseCase
 

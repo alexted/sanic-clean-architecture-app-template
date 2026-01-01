@@ -1,9 +1,6 @@
 from enum import Enum
 from functools import lru_cache
 
-from pydantic import HttpUrl, KafkaDsn, RedisDsn, PostgresDsn
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
 class EnvironmentEnum(str, Enum):
     LOCAL = "LOCAL"
     TESTING = "TESTING"

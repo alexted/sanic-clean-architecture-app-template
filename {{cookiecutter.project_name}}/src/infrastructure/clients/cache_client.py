@@ -1,7 +1,7 @@
 from typing import Annotated
 from functools import lru_cache
 
-from fastapi import Depends
+
 from redis.asyncio import Redis
 
 from src.infrastructure.core.settings import get_config, AppConfig

@@ -1,6 +1,6 @@
 from sanic import json, Request
 from sanic.exceptions import SanicException, NotFound
-from pydantic import ValidationError
+
 
 async def sanic_error_handler(request: Request, exception: Exception):
     status_code = 500

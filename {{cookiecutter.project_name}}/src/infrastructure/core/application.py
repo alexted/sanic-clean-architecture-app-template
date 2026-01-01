@@ -8,7 +8,7 @@ from sanic_ext import Extend
 from src.api import v1_blueprint  # переименовали v1_routes в v1_blueprint
 from .settings import AppConfig, EnvironmentEnum, get_config
 from .log_config import init_logging
-# from .telemetry import fsetup_otel
+from .telemetry import setup_otel
 from .middlewares.error_handling import sanic_error_handler
 from .middlewares.correlation_id import handle_correlation_id_request, handle_correlation_id_response
 from .middlewares.log_requests import log_request_start, log_request_end
@@ -50,7 +50,7 @@ def create_app() -> Sanic:
     app.register_middleware(handle_correlation_id_response, "response")
     app.register_middleware(log_request_end, "response")
 
-    # setup_otel(config)
+    setup_otel(config)
 
     if config.ENVIRONMENT == EnvironmentEnum.PROD:
         sentry_sdk.init(dsn=config.SENTRY_URL, traces_sample_rate=1.0)

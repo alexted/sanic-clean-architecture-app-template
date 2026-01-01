@@ -1,0 +1,12 @@
+{
+  "project_name": "Enter the name of project (without spaces)",
+  "project_description": "ATTENTION: It is necessary to fill the description of the microservice {{ cookiecutter.project_name }}",
+  "project_release": "1.0.0",
+  "app_developer": "Firstname Lastname",
+  "app_lang_version": "3.13",
+  "use_postgresql": "n",
+  "use_alembic": "n",
+  "use_jwt": "n",
+  "use_cache": "n",
+  "use_kafka": "n"
+}

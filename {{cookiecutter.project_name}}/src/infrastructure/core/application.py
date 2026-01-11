@@ -1,85 +1,79 @@
-from sanic import Sanic, Request, response
-from sanic.response import json
-from sanic.exceptions import SanicException
-import sentry_sdk
+from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+from sanic import Sanic, response
 from sanic_ext import Extend
+import sentry_sdk
+from sanic_prometheus import monitor
 
-# Ваши импорты (пути могут требовать корректировки внутри модулей)
-from src.api import v1_blueprint  # переименовали v1_routes в v1_blueprint
+from src.api import v1_blueprint
+
 from .settings import AppConfig, EnvironmentEnum, get_config
+from .telemetry import setup_otel
 from .log_config import init_logging
-# from .telemetry import fsetup_otel
-from .middlewares.error_handling import sanic_error_handler
+from .middlewares.log_requests import log_request_end, log_request_start
 from .middlewares.correlation_id import handle_correlation_id_request, handle_correlation_id_response
-from .middlewares.log_requests import log_request_start, log_request_end
+from .errors.error_handling import sanic_error_handler
 
-# Middleware и ExceptionHandler придется адаптировать (см. ниже)
 
 def create_app() -> Sanic:
     config: AppConfig = get_config()
     init_logging(config)
 
-    # Инициализация Sanic
     app = Sanic(config.APP_NAME)
 
-    # Конфигурация Sanic (можно передать dict)
-    app.config.update(
-        OAS_URL_PREFIX="/docs",  # Swagger UI
-        OAS_UI_DEFAULT="swagger",
-    )
+    app.config.update(OAS_URL_PREFIX="/docs", OAS_UI_DEFAULT="swagger")
 
-    # Подключение sanic-ext (OpenAPI, Injection, Validation)
-    # Настраиваем информацию для Swagger
-    Extend(app, config={
-        "oas": {
-            "info": {
-                "title": config.APP_NAME,
-                "version": "1.0.0",
-                "description": "...",
-                "license": {"name": "Proprietary Software License"}
+    Extend(
+        app,
+        config={
+            "oas": {
+                "info": {
+                    "title": config.APP_NAME,
+                    "version": "1.0.0",
+                    "description": "...",
+                    "license": {"name": "Proprietary Software License"},
+                }
             }
-        }
-    })
-
-    # Регистрация ошибок
-    app.error_handler.add(Exception, sanic_error_handler)
-
-    # Регистрация middleware
-    app.register_middleware(handle_correlation_id_request, "request")
-    app.register_middleware(log_request_start, "request")
-    app.register_middleware(handle_correlation_id_response, "response")
-    app.register_middleware(log_request_end, "response")
-
-    # setup_otel(config)
-
-    if config.ENVIRONMENT == EnvironmentEnum.PROD:
-        sentry_sdk.init(dsn=config.SENTRY_URL, traces_sample_rate=1.0)
-        # Для Prometheus в Sanic обычно используют sanic-prometheus или кастомный endpoint
+        },
+    )
 
     # Health check
     @app.get("/health")
     async def health_check(request):
         return response.empty(status=200)
 
-    # Подключение роутов (Blueprints)
+    # todo Здесь скорее всего надо использовать
+    #  app.error_handler = CustomErrorHandler()
+    #  вместо обработки конкретных исключений (хоть и с широкой маской `Exception`):
+    app.error_handler.add(Exception, sanic_error_handler)
+
+    # todo сюда надо добавить аутентификацию
+    app.register_middleware(handle_correlation_id_request, "request")
+    app.register_middleware(log_request_start, "request")
+    app.register_middleware(handle_correlation_id_response, "response")
+    app.register_middleware(log_request_end, "response")
+
+    setup_otel(config)
+    # app = OpenTelemetryMiddleware(app)
+
+    if config.ENVIRONMENT == EnvironmentEnum.PROD:
+        sentry_sdk.init(dsn=config.SENTRY_URL, traces_sample_rate=1.0)
+        monitor(app).expose_endpoint()
+
     app.blueprint(v1_blueprint)
 
-    # --- Dependency Injection Registration ---
-    # КРИТИЧЕСКИЙ МОМЕНТ:
-    # В FastAPI Depends() создает экземпляр на лету.
-    # В Sanic-ext мы регистрируем классы, чтобы он знал, как их инжектить.
-    # Нам нужно зарегистрировать UseCases.
+    # todo сюда
+    from src.domain.use_cases.numbers import DivideUseCase, MultiplyUseCase, SubtractUseCase, SummariseUseCase
 
-    # Регистрация DI (через sanic-ext)
-    from src.domain.use_cases.numbers import SummariseUseCase
     app.ext.dependency(SummariseUseCase)
+    app.ext.dependency(SubtractUseCase)
+    app.ext.dependency(MultiplyUseCase)
+    app.ext.dependency(DivideUseCase)
     # И так для всех UseCase и их зависимостей (Repository и т.д.)
 
-    from src.domain.use_cases.items import (
-        CreateItemUseCase, GetItemUseCase, UpdateItemUseCase, DeleteItemUseCase
-    )
+    from src.domain.use_cases.items import GetItemUseCase, CreateItemUseCase, DeleteItemUseCase, UpdateItemUseCase
+
     # Sanic попробует создать их без аргументов, если в __init__ ничего нет,
-    # или инжектить зависимости в них рекурсивно.
+    # или инжектить зависимости в них рекурсивно, если сабзависимости предварительно были так же зарегистрированы (вся цепочка).
     app.ext.dependency(CreateItemUseCase)
     app.ext.dependency(GetItemUseCase)
     app.ext.dependency(UpdateItemUseCase)

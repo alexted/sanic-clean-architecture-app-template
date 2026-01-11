@@ -1,6 +1,6 @@
 from sanic import Blueprint, Request, response
 from sanic_ext import validate
-from pydantic import NonNegativeInt
+
 
 # Импорты DTO и UseCases остаются теми же
 from src.domain.use_cases.items import (

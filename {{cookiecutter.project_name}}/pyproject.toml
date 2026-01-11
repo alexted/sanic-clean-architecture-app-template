@@ -9,22 +9,18 @@ license = { text = "My Private License" }
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-#    "fastapi",
     "sanic",
     "sanic-ext",
     "sanic-prometheus",
-#    "opentelemetry-instrumentation-sanic",
-    "orjson",
     "granian[reload, pname]",
-    "pydantic[email]",
-    "pydantic-settings",
+    "msgspec",
+    "python-dotenv",
     "pyjwt[crypto]",
     "asyncpg",
     "sqlalchemy[asyncio]",
     "alembic",
     "python-json-logger",
-    "sentry-sdk[fastapi]",
-#    "prometheus-fastapi-instrumentator",
+    "sentry-sdk[sanic]",
     "redis[hiredis]",
     "aiokafka",
     "httpx",
@@ -32,12 +28,12 @@ dependencies = [
     "opentelemetry-sdk",
     "opentelemetry-exporter-otlp",
     "opentelemetry-instrumentation",
-#    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-asgi",
     "opentelemetry-instrumentation-sqlalchemy",
     "opentelemetry-instrumentation-redis",
-    "opentelemetry-instrumentation-botocore",
     "opentelemetry-instrumentation-aiokafka",
     "opentelemetry-instrumentation-httpx",
+    "sanic-prometheus-mon (>=0.3.9,<0.4.0)",
 ]
 
 [tool.poetry]

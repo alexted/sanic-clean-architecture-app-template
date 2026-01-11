@@ -2,7 +2,6 @@ from collections.abc import Iterator, AsyncIterator, AsyncGenerator
 
 from httpx import AsyncClient, ASGITransport
 import pytest
-from fastapi import FastAPI
 from filelock import FileLock
 from sqlalchemy import NullPool
 from alembic.config import Config as AlembicConfig
@@ -67,7 +66,7 @@ async def db_session(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 
 @pytest.fixture
-def app({% if cookiecutter.use_postgresql|lower == 'y' -%}migrations: None, db_session: AsyncSession{% endif -%}) -> FastAPI:
+def app({% if cookiecutter.use_postgresql|lower == 'y' -%}migrations: None, db_session: AsyncSession{% endif -%}) -> Sanic:
     app_instance = create_app()
 
     {%- if cookiecutter.use_postgresql | lower == 'y' %}
@@ -83,7 +82,7 @@ def app({% if cookiecutter.use_postgresql|lower == 'y' -%}migrations: None, db_s
 
 
 @pytest.fixture()
-async def client(app: FastAPI) -> AsyncGenerator[AsyncClient]:
+async def client(app: Sanic) -> AsyncGenerator[AsyncClient]:
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url=TEST_APP_URL,

@@ -1,7 +1,6 @@
 from typing import Annotated
 import logging
 
-from fastapi import Depends
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession

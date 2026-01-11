@@ -3,7 +3,7 @@ from typing import Annotated
 from functools import lru_cache
 from collections.abc import Iterator
 
-from fastapi import Depends
+
 from aiokafka import AIOKafkaProducer
 
 from src.infrastructure.core.settings import AppConfig, get_config

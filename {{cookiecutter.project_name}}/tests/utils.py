@@ -2,7 +2,7 @@ from typing import Any
 from datetime import datetime
 from unittest.mock import Mock
 
-from pydantic import TypeAdapter
+
 
 TEST_APP_URL = "http://test"
 

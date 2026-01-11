@@ -1,11 +1,11 @@
-from fastapi import FastAPI
+
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
@@ -31,7 +31,6 @@ def setup_otel(config: AppConfig):
     provider.add_span_processor(span_processor)
 
     # Auto-instrumentation
-    FastAPIInstrumentor().instrument()
     SQLAlchemyInstrumentor().instrument()
     RedisInstrumentor().instrument()
     BotocoreInstrumentor().instrument()

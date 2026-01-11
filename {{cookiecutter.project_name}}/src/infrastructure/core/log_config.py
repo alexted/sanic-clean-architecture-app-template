@@ -1,17 +1,18 @@
-import logging
+from logging import Filter, LogRecord
+from logging.config import dictConfig
 
 from .settings import AppConfig
 from .middlewares.correlation_id import CORRELATION_ID
 
 
-class RequestIdFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:  # noqa: A003
+class RequestIdFilter(Filter):
+    def filter(self, record: LogRecord) -> bool:  # noqa: A003
         record.correlation_id = CORRELATION_ID.get()
         return True
 
 
 def init_logging(config: AppConfig) -> None:
-    logging.config.dictConfig(
+    dictConfig(
         {
             "version": 1,
             "filters": {"correlation_id": {"()": RequestIdFilter}},
@@ -26,11 +27,11 @@ def init_logging(config: AppConfig) -> None:
                     "level": config.LOG_LEVEL,
                     "class": "logging.StreamHandler",
                     "formatter": "default",
-                    "stream": "interceptors://sys.stdout",
+                    "stream": "ext://sys.stdout",
                     "filters": ["correlation_id"],
                 }
             },
-            "loggers": {config.APP_NAME: {"level": config.LOG_LEVEL, "handlers": (["console"])}},
+            "loggers": {config.APP_NAME: {"level": config.LOG_LEVEL, "handlers": ["console"]}},
             "disable_existing_loggers": False,
         }
     )

@@ -1,7 +1,14 @@
-from enum import Enum
+import os
+from enum import StrEnum
 from functools import lru_cache
 
-class EnvironmentEnum(str, Enum):
+from dotenv import load_dotenv
+import msgspec
+
+load_dotenv()
+
+
+class EnvironmentEnum(StrEnum):
     LOCAL = "LOCAL"
     TESTING = "TESTING"
     TEST = "TEST"
@@ -10,7 +17,7 @@ class EnvironmentEnum(str, Enum):
     PROD = "PROD"
 
 
-class LoggingLevelEnum(str, Enum):
+class LoggingLevelEnum(StrEnum):
     CRITICAL = "CRITICAL"
     ERROR = "ERROR"
     WARNING = "WARNING"
@@ -18,35 +25,42 @@ class LoggingLevelEnum(str, Enum):
     DEBUG = "DEBUG"
 
 
-class AppConfig(BaseSettings):
+class AppConfig(msgspec.Struct, frozen=True, kw_only=True):
     ENVIRONMENT: EnvironmentEnum = EnvironmentEnum.LOCAL
-    APP_NAME: str = "{{ cookiecutter.project_name }}"
+    APP_NAME: str = "xyu"
 
     # Logging
-    SENTRY_DSN: HttpUrl | None = None
+    SENTRY_DSN: str | None = None
     LOG_LEVEL: LoggingLevelEnum = LoggingLevelEnum.INFO
-    {% if cookiecutter.use_postgresql | lower == 'y' %}
-    # Postgres
-    POSTGRES_DSN: PostgresDsn
-    POSTGRES_MAX_CONNECTIONS: int = 10
-    {% endif -%}
-    {% if cookiecutter.use_cache | lower == 'y' %}
-    # Redis
-    CACHE_DSN: RedisDsn
-    {% endif -%}
-    {% if cookiecutter.use_kafka| lower == 'y' %}
-    # Kafka
-    KAFKA_DSN: KafkaDsn | str
-    {% endif %}
-    # Identity provider
-    IDP_URL: HttpUrl
-    IDP_CLIENT_SECRET: str
+    TELEMETRY_URL: str | None = None
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", use_enum_values=True, extra="ignore", frozen=True
-    )
+    # Postgres
+    POSTGRES_DSN: str
+    POSTGRES_MAX_CONNECTIONS: int = 10
+
+    # Redis
+    CACHE_DSN: str
+
+    # Kafka
+    KAFKA_DSN: str
+
+    # Identity provider
+    IDP_URL: str
+    IDP_CLIENT_SECRET: str
 
 
 @lru_cache(maxsize=1)
 def get_config() -> AppConfig:
-    return AppConfig()
+    # Собираем словарь из переменных окружения, которые есть в AppConfig
+    # Это простой и быстрый способ без тяжелых зависимостей
+    config_data = {}
+    for field in msgspec.structs.fields(AppConfig):
+        env_value = os.getenv(field.name)
+        if env_value is not None:
+            config_data[field.name] = env_value
+        elif field.default is msgspec.NODEFAULT:
+            # Если значения нет в env и нет дефолта в структуре - возникнет ошибка позже
+            pass
+
+    # msgspec.convert сделает всю магию: приведет строки к int, Enum и т.д.
+    return msgspec.convert(config_data, AppConfig)

@@ -12,11 +12,9 @@ dependencies = [
     "sanic",
     "sanic-ext",
     "sanic-prometheus",
-    "orjson",
     "granian[reload, pname]",
     "msgspec",
     "python-dotenv",
-    "msgspec-openapi",
     "pyjwt[crypto]",
     "asyncpg",
     "sqlalchemy[asyncio]",
@@ -30,11 +28,12 @@ dependencies = [
     "opentelemetry-sdk",
     "opentelemetry-exporter-otlp",
     "opentelemetry-instrumentation",
+    "opentelemetry-instrumentation-asgi",
     "opentelemetry-instrumentation-sqlalchemy",
     "opentelemetry-instrumentation-redis",
-    "opentelemetry-instrumentation-botocore",
     "opentelemetry-instrumentation-aiokafka",
     "opentelemetry-instrumentation-httpx",
+    "sanic-prometheus-mon (>=0.3.9,<0.4.0)",
 ]
 
 [tool.poetry]
